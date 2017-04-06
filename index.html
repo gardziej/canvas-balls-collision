@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf8" />
+<title>testujemy js</title>
+<style>
+* { margin: 0; padding: 0;}
+#settings { background: white; width: 200px; min-height: 200px; float: left; }
+
+#settings p { margin: 5px auto; text-align: center; }
+</style>
+
+<script type="text/JavaScript" src="../js/jquery-2.1.3.min.js"></script>
+
+<script>
+
+$(document).ready(function(){
+
+	var ekran = {
+		width : window.innerWidth-4,
+		height : window.innerHeight-4
+	};
+	var canvas = document.createElement("canvas");
+	var c = canvas.getContext("2d");
+	canvas.width = ekran.width - $('form#settings').width();
+	canvas.height = ekran.height;
+	document.body.appendChild(canvas);
+	
+	var center = {
+		x : canvas.width / 2,
+		y : canvas.height / 5
+	};	
+	
+	
+	var Mouse = {    position : { x : 0, y : 0 },    leftDown : false }; 	
+	
+	document.onmousedown = handleMouseDown;
+	function handleMouseDown(e) 
+		{
+		
+		var mx = e.clientX - canvas.offsetLeft;
+		var my = e.clientY - canvas.offsetTop;
+		
+		if (my < floor && mx > 0)
+			{
+			center.x = mx;    
+			center.y = my;
+			}
+		
+		var p = c.getImageData(mx, my, 3, 1).data;		
+		console.log(p);
+		
+		
+		} 	
+	
+	formUpdate();
+	counter = 0;
+	minRadius = 5;
+	maxRadius = 20;
+	tarcie = .99;
+	go = true;
+	maxBalls = 45;
+	lastLoop = new Date;
+	fpsArr = [];
+	
+	var colors = ['yellow', 'blue', 'orange', 'green'];
+	
+	var balls = {}, 
+		ballIndex = 0;
+	
+	function Ball(radius, x, y, vx, vy) {
+		if (typeof radius !== 'undefined')
+			{
+			this.radius = radius;
+			}
+			else
+			{
+			this.radius = getRandomInt(minRadius,maxRadius);
+			}
+	
+		if (typeof x !== 'undefined')
+			{
+			this.x = x;
+			}
+			else
+			{
+			this.x = getRandomInt(this.radius*3, canvas.width - this.radius*3);
+			}
+		
+		if (typeof y !== 'undefined')
+			{
+			this.y = y;
+			}
+			else
+			{
+			this.y = getRandomInt(this.radius*3, floor - this.radius*3);
+			}
+
+		if (typeof vx !== 'undefined')
+			{			
+			this.vx = vx;
+			}
+			else
+			{
+			this.vx = getRandom(-5,5);
+			}
+			
+		if (typeof vy !== 'undefined')
+			{			
+			this.vy = vy;
+			}
+			else
+			{			
+			this.vy = getRandom(-5,5);
+			}
+		
+		ballIndex++;
+		balls[ballIndex] = this;
+		this.id = ballIndex;
+		this.life = 0;
+		this.maxLife = maxLife;
+		this.color = colors[getRandomInt(0,colors.length)];
+	}
+
+	Ball.prototype.checkWallCollision = function () {
+		var hhh = 0;
+		if (this.y + this.radius >= floor)
+			{
+				this.vy *= - .8;
+				this.vx *=  tarcie;
+				this.y = floor - this.radius;
+				hhh = 1;
+			}
+			
+		if (this.y - this.radius <= 0)
+			{
+				this.vy *= - .8;
+				this.vx *=  tarcie;
+				this.y = this.radius;
+				hhh = 1;
+			}			
+
+		if (this.x - this.radius <= 0)
+			{
+				this.vx *= - .8;
+				this.vy *=  tarcie;
+				this.x = this.radius;
+				hhh = 1;
+			}
+
+		if (this.x + this.radius >= canvas.width)
+			{
+				this.vx *= - .8;
+				this.vy *=  tarcie;
+				this.x = canvas.width - this.radius;
+				hhh = 1;
+			}
+		return hhh;
+	}
+
+	Ball.prototype.stop = function () {
+		this.vx = 0;
+		this.vy = 0;
+	}
+	
+	Ball.prototype.draw = function () {
+		this.x += this.vx;
+		this.y += this.vy;
+		
+		if (this.maxLife != maxLife)
+			{
+			this.maxLife = maxLife;
+			}
+			
+		//this.vy *= 0.9;
+		this.life++;
+		if (this.life >= this.maxLife)
+			{
+			delete balls[this.id];
+			}
+			
+		this.checkWallCollision();	
+		this.vy += gravity;			
+		
+		
+		/*		
+		for (var i = 12; i > 0; i--)
+			{
+			c.beginPath();
+			c.arc(this.x - (this.vx * i), this.y - (this.vy * i), i, 0, 2 * Math.PI, false);
+			c.fillStyle = "white";
+			c.fill();		
+			}
+		
+		
+
+		c.fillStyle = 'white';
+		c.font="12px Georgia";
+		c.fillText(this.maxLife - this.life,this.x + this.radius + 5,this.y + this.radius/2);
+		*/
+
+		c.beginPath();
+		c.arc(this.x, this.y, this.radius, 0, 2 * Math.PI, false);
+		c.fillStyle = this.color;
+		c.fill();
+		
+				
+	}
+
+	if (1==2)
+	{
+	a1 = new Ball(150, 300, 200, 7, 0);
+	a1.color = 'red';
+	a2 = new Ball(100, 700, 300, -5, 0);
+	a2.color = 'blue';
+	}
+	
+	
+	var loop = function() {
+		c.fillStyle = 'rgba(0,0,0,'+cien+')';
+		c.fillRect(0,0,canvas.width,canvas.height);		
+		
+		c.beginPath();
+		c.strokeStyle="white";
+		c.moveTo(0, floor+1);
+		c.lineTo(canvas.width, floor+1);
+		c.stroke();		
+
+		if (counter % 60 == 0)
+			{
+			for (var i = 0; i < ballsNum; i++)
+				{
+				new Ball();
+				}		
+			counter = 0;
+			}
+			
+		go = checkBallsCollision();
+		
+		for (var i in balls)
+			{
+			balls[i].draw();
+			}
+		
+		formUpdate();
+		counter++;
+		
+			c.fillStyle = 'white';
+			c.font="24px Georgia";
+			c.fillText(gameLoop(),10,20);			
+		
+		
+		
+		
+		
+		if (go == true) window.requestAnimationFrame(loop, canvas);
+	};	
+	window.requestAnimationFrame(loop, canvas);
+	
+
+	function gameLoop() { 
+		var thisLoop = new Date;
+		var fps = 1000 / (thisLoop - lastLoop);
+		lastLoop = thisLoop;
+		fpsArr.push(fps);
+		if (fpsArr.length > 60) fpsArr.shift();
+		var suma = 0;
+		for (var i in fpsArr)
+			{
+			suma += fpsArr[i];
+			}
+		return (suma/fpsArr.length).toFixed(0);
+	}
+	
+
+	function checkBallsCollision() {
+		var start = 0;
+		for (var i in balls)
+			{
+			for (var j in balls)
+				{
+				if (j != i && Math.abs(balls[j].x - balls[i].x) < maxBalls*2 && Math.abs(balls[j].y - balls[i].y) < maxBalls*2)
+					{
+					dx = balls[j].x - balls[i].x;
+					dy = balls[j].y - balls[i].y;
+					dist = Math.sqrt(dx*dx + dy*dy);
+					if (dist <= balls[j].radius + balls[i].radius)
+						{
+
+						normalX = dx / dist;
+						normalY = dy / dist;
+						
+						midpointX = (balls[i].x + balls[j].x) / 2 - normalX * ((balls[j].radius - balls[i].radius) / 2);	
+						midpointY = (balls[i].y + balls[j].y) / 2 - normalY * ((balls[j].radius - balls[i].radius) / 2);	
+						
+						org_i = [ balls[i].x, balls[i].y ];
+						org_j = [ balls[j].x, balls[j].y ];
+						
+						balls[i].x = midpointX - normalX * balls[i].radius;
+						balls[i].y = midpointY - normalY * balls[i].radius;
+						balls[j].x = midpointX + normalX * balls[j].radius;
+						balls[j].y = midpointY + normalY * balls[j].radius;
+						
+						if (balls[i].checkWallCollision()) 
+							{
+							balls[i].x = org_i[0];
+							balls[i].y = org_i[1];
+							console.log('i');
+							}
+							
+						if (balls[j].checkWallCollision()) 
+							{
+							balls[j].x = org_j[0];
+							balls[j].y = org_j[1];
+							console.log('j');
+							}							
+							
+						
+						if (1==2)
+						{
+						go = false;						
+						balls[i].stop();
+						balls[j].stop();	
+						
+						m = new Ball(5, midpointX, midpointY);
+						m.color = 'yellow';
+						
+						t = new Ball(5, midpointX - normalX * balls[i].radius, midpointY - normalY * balls[i].radius);
+						t.color = 'white';
+						h = new Ball(5, midpointX + normalX * balls[j].radius, midpointY + normalY * balls[j].radius);
+						h.color = 'gray';
+						}
+						
+						dVector = (balls[i].vx - balls[j].vx) * normalX;
+						dVector += (balls[i].vy - balls[j].vy) * normalY;
+						dvx = dVector * normalX;
+						dvy = dVector * normalY;
+						balls[i].vx -= dvx;
+						balls[i].vy -= dvy;
+						balls[j].vx += dvx;
+						balls[j].vy += dvy;						
+						}
+					
+					}
+				}				
+			}	
+		start = 1;
+		return start;
+	}
+	
+	function formUpdate() {
+		gravity = $('input[name=gravity]').val() / 100;
+		ballsNum = parseInt($('input[name=ballsNum]').val());
+		maxLife = $('input[name=maxLife]').val();
+		cien = 1- ($('input[name=cien]').val() / 100) ;
+		floor = Math.floor(canvas.height - Math.floor(canvas.height * $('input[name=floor]').val() / 100));
+		$(".wartosc").each(function(index, value) { 
+			var _val = $(this).parent().parent().find('input').val();
+			$(this).html(_val);
+		});
+	}
+	
+	function getRandomInt(min, max) {
+		if (typeof min === 'undefined') min = 0;
+		if (typeof max === 'undefined') max = 100;
+		return Math.floor(Math.random() * (max - min + 1)) + min;
+	}
+
+	function getRandom(min, max) {
+		if (typeof min === 'undefined') min = 0;
+		if (typeof max === 'undefined') max = 100;
+		return (Math.random() * (max - min + 1)) + min;
+	}	
+
+	
+});
+
+</script>
+</head>
+<body>
+<form id="settings">
+<p><label>grawitacja <span class="wartosc"></span></label><input type="range" name="gravity" min="-100" max="200" value="0"></p>
+<p><label>liczba piłek <span class="wartosc"></span></label><input type="range" name="ballsNum" min="1" max="100" value="1"></p>
+<p><label>maks dł. życia <span class="wartosc"></span></label><input type="range" name="maxLife" min="10" max="5000" value="5000"></p>
+<p><label>podłoga <span class="wartosc"></span></label><input type="range" name="floor" min="0" max="50" value="10"></p>
+<p><label>smuga <span class="wartosc"></span></label><input type="range" name="cien" min="0" max="100" value="0"></p>
+</form>
+</body>
+</html>
